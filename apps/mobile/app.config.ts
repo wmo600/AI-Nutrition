@@ -5,13 +5,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: "ai-nutrition-mobile-dev",
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
   scheme: "ainutrition",
   
   plugins: [
-    "expo-router",
-    "expo-asset" // Remove "nativewind/metro" from here
+    "expo-router"
   ],
   
   experiments: {
@@ -19,9 +17,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   
   splash: {
-    image: "./assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
+    resizeMode: "contain"
+    // No image specified - will use background color only
   },
   
   ios: {
@@ -30,10 +28,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   
   android: {
-    adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff"
-    },
     package: "com.wmo.ainutrition"
   },
   
@@ -41,8 +35,4 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     enabled: false,
     fallbackToCacheTimeout: 0,
   },
-  
-  web: {
-    favicon: "./assets/favicon.png"
-  }
 });
