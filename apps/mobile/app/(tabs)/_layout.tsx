@@ -9,15 +9,15 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ focused, size }) => (
+          tabBarIcon: ({ focused, color, size }) => ( // Add color here
             <Ionicons
               name={focused ? "home" : "home-outline"}
               size={size}
+              color={color} // Pass it to Ionicons
             />
           ),
         }}
       />
-      {/* Add more tabs later like "log", "profile", etc */}
     </Tabs>
   );
 }

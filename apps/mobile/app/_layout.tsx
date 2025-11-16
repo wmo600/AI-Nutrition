@@ -1,10 +1,9 @@
-// apps/mobile/app/_layout.tsx
+// import "../global.css"; // Comment this out temporarily
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      {/* You don't *have* to list these, but it’s nice for options later */}
       <Stack.Screen name="splash" />
       <Stack.Screen name="login" />
       <Stack.Screen name="preferences" />

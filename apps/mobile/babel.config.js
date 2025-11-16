@@ -1,18 +1,12 @@
-// apps/mobile/babel.config.js
 module.exports = function (api) {
   api.cache(true);
   return {
     presets: [
-      // Expo preset, with jsxImportSource so NativeWind can hook into JSX
+      // Expo preset with NativeWind JSX transform
       ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      // NativeWind as *preset*, not plugin
+      // NativeWind preset
       "nativewind/babel",
     ],
-    plugins: [
-      // Expo Router plugin
-      "expo-router/babel",
-      // (Optional) add more plugins here later, e.g. reanimated
-      // "react-native-reanimated/plugin",
-    ],
+    // ❌ DO NOT put "expo-router/babel" here on SDK 50+ — it's already in the preset
   };
 };
