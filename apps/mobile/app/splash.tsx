@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { splashStyles as styles } from "../src/styles/screens";
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -13,24 +14,22 @@ export default function SplashScreen() {
   }, []);
 
   return (
-    <View className="flex-1 bg-green-500 items-center justify-center px-8">
+    <View style={styles.container}>
       {/* Logo */}
-      <View className="bg-white rounded-3xl w-24 h-24 items-center justify-center mb-8 shadow-lg">
-        <Text className="text-3xl">🛒</Text>
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoIcon}>🛒</Text>
       </View>
 
-      <Text className="text-white text-2xl font-semibold mb-2">
-        SmartCart
-      </Text>
-      <Text className="text-white/90 text-center mb-12">
+      <Text style={styles.appName}>SmartCart</Text>
+      <Text style={styles.subtitle}>
         Your AI-powered grocery planning assistant
       </Text>
 
       <TouchableOpacity
-        className="bg-white rounded-2xl px-10 py-3"
+        style={styles.getStartedButton}
         onPress={() => router.replace("/login")}
       >
-        <Text className="text-green-600 font-semibold">Get Started</Text>
+        <Text style={styles.getStartedText}>Get Started</Text>
       </TouchableOpacity>
     </View>
   );

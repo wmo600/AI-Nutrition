@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../src/store";
+import { preferencesStyles as styles } from "../src/styles/screens";
 
 const CUISINES = [
   "Western",
@@ -32,15 +33,9 @@ function Tag({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`px-4 py-2 rounded-full border mb-2 mr-2 ${
-        active
-          ? "bg-green-50 border-green-500"
-          : "bg-white border-gray-300"
-      }`}
+      style={[styles.tag, active && styles.tagActive]}
     >
-      <Text
-        className={active ? "text-green-700 font-medium" : "text-gray-800"}
-      >
+      <Text style={[styles.tagText, active && styles.tagTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -61,16 +56,12 @@ export default function PreferencesScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white px-6 pt-16">
-      <Text className="text-2xl font-semibold mb-1">Preferences</Text>
-      <Text className="text-gray-500 mb-6">
-        Customize your experience
-      </Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>Preferences</Text>
+      <Text style={styles.subtitle}>Customize your experience</Text>
 
-      <Text className="text-lg font-semibold mb-2">
-        Cuisine Preferences
-      </Text>
-      <View className="flex-row flex-wrap mb-6">
+      <Text style={styles.sectionTitle}>Cuisine Preferences</Text>
+      <View style={styles.tagContainer}>
         {CUISINES.map((c) => (
           <Tag
             key={c}
@@ -81,10 +72,8 @@ export default function PreferencesScreen() {
         ))}
       </View>
 
-      <Text className="text-lg font-semibold mb-2">
-        Allergies & Restrictions
-      </Text>
-      <View className="flex-row flex-wrap mb-10">
+      <Text style={styles.sectionTitle}>Allergies & Restrictions</Text>
+      <View style={styles.tagContainer}>
         {ALLERGIES.map((a) => (
           <Tag
             key={a}
@@ -96,10 +85,10 @@ export default function PreferencesScreen() {
       </View>
 
       <TouchableOpacity
-        className="rounded-2xl py-3 items-center bg-green-500 mb-10"
+        style={styles.continueButton}
         onPress={() => router.replace("/(tabs)")}
       >
-        <Text className="text-white font-semibold">Continue</Text>
+        <Text style={styles.continueText}>Continue</Text>
       </TouchableOpacity>
     </ScrollView>
   );

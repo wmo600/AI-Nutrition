@@ -1,35 +1,44 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { useAppStore } from "../../src/store";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import { listsStyles as styles } from "../../src/styles/screens";
 
-export default function ShoppingList() {
-  const { groceryList, removeItem } = useAppStore();
+export default function ShoppingLists() {
+  const router = useRouter();
 
   return (
-    <View className="flex-1 bg-white px-6 pt-12">
-      <Text className="text-lg font-semibold mb-4">Shopping List</Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.title}>Shopping Lists</Text>
+          <Text style={styles.subtitle}>Manage your grocery lists</Text>
+        </View>
+      </View>
 
-      <FlatList
-        data={groceryList}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={
-          <Text className="text-gray-500">
-            No items yet. Plans will appear here.
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View className="flex-row justify-between items-center border-b border-gray-100 py-3">
-            <View>
-              <Text className="font-medium">{item.name}</Text>
-              <Text className="text-gray-500 text-xs">
-                {item.quantity}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => removeItem(item.id)}>
-              <Text className="text-red-500 text-sm">Delete</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+      {/* Tabs */}
+      <View style={styles.tabs}>
+        <TouchableOpacity style={styles.tabActive}>
+          <Text style={styles.tabTextActive}>Active List</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tab}>
+          <Text style={styles.tabText}>Saved</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tab}>
+          <Text style={styles.tabText}>History</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Empty State */}
+      <View style={styles.emptyState}>
+        <View style={styles.addIconContainer}>
+          <Text style={styles.addIcon}>+</Text>
+        </View>
+        <Text style={styles.emptyTitle}>No items yet</Text>
+        <Text style={styles.emptySubtitle}>Start planning your groceries</Text>
+      </View>
     </View>
   );
 }

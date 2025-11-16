@@ -1,85 +1,71 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { useRouter } from "expo-router";
-import { useAppStore } from "../../src/store";
+import { plannerStyles as styles } from "../../src/styles/screens";
 
-export default function HomeDashboard() {
+const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+
+export default function GroceryPlanner() {
   const router = useRouter();
-  const { prefs } = useAppStore();
 
   return (
-    <View className="flex-1 bg-gray-50 px-6 pt-12">
-      <Text className="text-xs text-gray-400 mb-1">Your Goal</Text>
-      <View className="bg-white rounded-2xl p-4 mb-6 shadow-sm flex-row justify-between items-center">
-        <View>
-          <Text className="text-green-600 text-sm">
-            {prefs.goal ?? "Set your goal"}
-          </Text>
-          <Text className="text-gray-500 text-xs">Personalized planning</Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Header */}
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Text style={styles.backIcon}>←</Text>
+      </TouchableOpacity>
+
+      <View style={styles.header}>
+        <Text style={styles.title}>Grocery Planner</Text>
+        <Text style={styles.subtitle}>Plan your weekly groceries</Text>
+      </View>
+
+      {/* Meal Types */}
+      <Text style={styles.sectionTitle}>Select Meal Types</Text>
+      <View style={styles.mealTypesContainer}>
+        {MEAL_TYPES.map((meal, index) => (
+          <TouchableOpacity
+            key={meal}
+            style={[
+              styles.mealTypeButton,
+              index % 2 === 0 ? styles.mealTypeButtonLeft : styles.mealTypeButtonRight,
+            ]}
+          >
+            <Text style={styles.mealTypeText}>{meal}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Custom Items */}
+      <Text style={styles.sectionTitle}>Add Custom Items</Text>
+      <View style={styles.customItemContainer}>
+        <TextInput
+          style={styles.customItemInput}
+          placeholder="e.g., Organic eggs"
+          placeholderTextColor="#9ca3af"
+        />
+        <TouchableOpacity style={styles.addButton}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Planning Tips */}
+      <View style={styles.tipsCard}>
+        <View style={styles.tipsHeader}>
+          <Text style={styles.tipsIcon}>💡</Text>
+          <Text style={styles.tipsTitle}>Planning Tips</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push("/profile")}>
-          <Text className="text-gray-400 text-2xl">👤</Text>
-        </TouchableOpacity>
+        <Text style={styles.tipText}>• Select meal types for personalized suggestions</Text>
+        <Text style={styles.tipText}>• Add specific items you need</Text>
+        <Text style={styles.tipText}>• We'll find the best prices across stores</Text>
       </View>
 
-      {/* Tiles */}
-      <View className="grid grid-cols-2 gap-3 mb-8">
-        <TouchableOpacity
-          className="bg-white rounded-2xl p-4 shadow-sm"
-          onPress={() => router.push("/(tabs)/planner")}
-        >
-          <Text className="text-2xl mb-2">🛒</Text>
-          <Text className="font-semibold mb-1">Plan Groceries</Text>
-          <Text className="text-gray-500 text-xs">
-            Plan by meal types
-          </Text>
-        </TouchableOpacity>
+      {/* Generate Button */}
+      <TouchableOpacity style={styles.generateButton}>
+        <Text style={styles.generateIcon}>✨</Text>
+        <Text style={styles.generateText}>Generate AI Plan</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-white rounded-2xl p-4 shadow-sm"
-          onPress={() => router.push("/planner-recommendations")}
-        >
-          <Text className="text-2xl mb-2">✨</Text>
-          <Text className="font-semibold mb-1">AI Recs</Text>
-          <Text className="text-gray-500 text-xs">
-            Smart grocery suggestions
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white rounded-2xl p-4 shadow-sm"
-          onPress={() => router.push("/(tabs)/stores")}
-        >
-          <Text className="text-2xl mb-2">📍</Text>
-          <Text className="font-semibold mb-1">Find Stores</Text>
-          <Text className="text-gray-500 text-xs">
-            Nearby supermarkets
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white rounded-2xl p-4 shadow-sm"
-          onPress={() => router.push("/(tabs)/lists")}
-        >
-          <Text className="text-2xl mb-2">📝</Text>
-          <Text className="font-semibold mb-1">My Lists</Text>
-          <Text className="text-gray-500 text-xs">
-            Active & saved lists
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Simple “Weekly deals” placeholders */}
-      <Text className="text-sm font-semibold mb-2">Weekly Deals</Text>
-      <View className="bg-green-50 rounded-2xl p-3 mb-3">
-        <Text className="text-sm font-medium">20% off vegetables</Text>
-        <Text className="text-xs text-gray-500">FairPrice</Text>
-      </View>
-      <View className="bg-blue-50 rounded-2xl p-3">
-        <Text className="text-sm font-medium">
-          Buy 2 Get 1 Free Yogurt
-        </Text>
-        <Text className="text-xs text-gray-500">Cold Storage</Text>
-      </View>
-    </View>
+      <View style={styles.spacer} />
+    </ScrollView>
   );
 }

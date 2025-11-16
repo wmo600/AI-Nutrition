@@ -1,75 +1,86 @@
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useAppStore } from "../../src/store";
+import { homeStyles as styles } from "../../src/styles/screens";
+import { colors } from "../../src/styles/theme";
 
 export default function HomeDashboard() {
   const router = useRouter();
   const { prefs } = useAppStore();
 
   return (
-    <ScrollView className="flex-1 bg-gray-50 px-5 pt-10">
-      {/* Goal card */}
-      <Text className="text-xs text-gray-400 mb-1">Your Goal</Text>
-      <View className="bg-white rounded-2xl px-4 py-3 mb-6 shadow-sm flex-row items-center justify-between">
-        <View className="flex-1 mr-3">
-          <Text className="text-green-600 text-sm font-semibold">
-            {prefs.goal ?? "Set your goal"}
-          </Text>
-          <Text className="text-gray-500 text-xs mt-0.5">
-            Personalized planning
-          </Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Goal Header */}
+      <View style={styles.header}>
+        <View style={styles.goalContainer}>
+          <Text style={styles.goalLabel}>Your Goal</Text>
+          <View style={styles.goalRow}>
+            <Text style={styles.goalIcon}>📈</Text>
+            <Text style={styles.goalText}>
+              {prefs.goal || "Health Maintenance"}
+            </Text>
+          </View>
         </View>
-
         <TouchableOpacity
-          className="w-9 h-9 rounded-full bg-gray-100 items-center justify-center"
+          style={styles.profileButton}
           onPress={() => router.push("/profile")}
         >
-          <Text className="text-lg">👤</Text>
+          <Text style={styles.profileIcon}>👤</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Tiles */}
-      <View className="flex-row flex-wrap -mx-1 mb-8">
-        <DashboardTile
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search groceries or meals"
+          placeholderTextColor={colors.gray[400]}
+        />
+      </View>
+
+      {/* Action Tiles */}
+      <View style={styles.tilesContainer}>
+        <ActionTile
           icon="🛒"
           title="Plan Groceries"
-          subtitle="Plan by meal types"
+          color={colors.green[100]}
           onPress={() => router.push("/(tabs)/planner")}
         />
-        <DashboardTile
-          icon="✨"
-          title="AI Recs"
-          subtitle="Smart grocery suggestions"
+        <ActionTile
+          icon="⭐"
+          title="AI Recommendations"
+          color={colors.purple[100]}
           onPress={() => router.push("/planner-recommendations")}
         />
-        <DashboardTile
+        <ActionTile
           icon="📍"
           title="Find Stores"
-          subtitle="Nearby supermarkets"
+          color={colors.blue[100]}
           onPress={() => router.push("/(tabs)/stores")}
         />
-        <DashboardTile
+        <ActionTile
           icon="📝"
           title="My Lists"
-          subtitle="Active & saved lists"
+          color={colors.pink[100]}
           onPress={() => router.push("/(tabs)/lists")}
         />
       </View>
 
-      {/* Weekly deals */}
-      <Text className="text-sm font-semibold mb-2">Weekly Deals</Text>
+      {/* Weekly Deals */}
+      <Text style={styles.sectionTitle}>Weekly Deals</Text>
 
-      <View className="bg-green-50 rounded-2xl px-4 py-3 mb-3">
-        <Text className="text-sm font-medium">20% off vegetables</Text>
-        <Text className="text-xs text-gray-500 mt-0.5">FairPrice</Text>
+      <View style={[styles.dealCard, styles.greenDeal]}>
+        <Text style={styles.dealTitle}>20% off all vegetables</Text>
+        <Text style={styles.dealStore}>FairPrice</Text>
       </View>
 
-      <View className="bg-blue-50 rounded-2xl px-4 py-3 mb-3">
-        <Text className="text-sm font-medium">Buy 2 Get 1 Free Yogurt</Text>
-        <Text className="text-xs text-gray-500 mt-0.5">Cold Storage</Text>
+      <View style={[styles.dealCard, styles.blueDeal]}>
+        <Text style={styles.dealTitle}>Buy 2 Get 1 Free Yogurt</Text>
+        <Text style={styles.dealStore}>Cold Storage</Text>
       </View>
 
-      <View className="h-6" />
+      <View style={styles.spacer} />
     </ScrollView>
   );
 }
@@ -77,21 +88,18 @@ export default function HomeDashboard() {
 type TileProps = {
   icon: string;
   title: string;
-  subtitle: string;
+  color: string;
   onPress: () => void;
 };
 
-function DashboardTile({ icon, title, subtitle, onPress }: TileProps) {
+function ActionTile({ icon, title, color, onPress }: TileProps) {
   return (
-    <TouchableOpacity
-      className="w-1/2 px-1 mb-3"
-      activeOpacity={0.8}
-      onPress={onPress}
-    >
-      <View className="bg-white rounded-2xl px-4 py-4 shadow-sm h-full">
-        <Text className="text-2xl mb-1">{icon}</Text>
-        <Text className="font-semibold text-sm mb-0.5">{title}</Text>
-        <Text className="text-gray-500 text-xs">{subtitle}</Text>
+    <TouchableOpacity style={styles.tile} activeOpacity={0.8} onPress={onPress}>
+      <View style={styles.tileContent}>
+        <View style={[styles.tileIcon, { backgroundColor: color }]}>
+          <Text style={styles.tileIconText}>{icon}</Text>
+        </View>
+        <Text style={styles.tileTitle}>{title}</Text>
       </View>
     </TouchableOpacity>
   );
