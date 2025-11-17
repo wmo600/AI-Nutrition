@@ -1,21 +1,21 @@
 {
-  "name": "api",
+  "name": "grocery-api",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Lambda handler for grocery planner API",
+  "main": "src/handler.ts",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@aws-sdk/client-location": "^3.931.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.158",
-    "@types/node": "^24.10.1",
+    "@types/node": "^20.0.0",
     "typescript": "^5.9.3"
   }
 }
