@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_ai_app/screens/vision_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../theme/app_colors.dart';
 import 'planner_screen.dart';
 import 'lists_screen.dart';
+import 'dashboard_screen.dart';
 import 'stores_screen.dart';
 import 'profile_screen.dart';
 
@@ -17,18 +19,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeTab(),
-    const PlannerScreen(),
-    const ListsScreen(),
-    const StoresScreen(),
-    const ProfileScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Get current "userId" (for now, use userName)
+    final userProvider = context.watch<UserProvider>();
+    final userId = userProvider.userId ?? 'guest';
+
+    final List<Widget> screens = [
+      const HomeTab(),
+      const PlannerScreen(),
+      const ListsScreen(),
+      VisionScreen(userId: userId),
+      DashboardScreen(userId: userId), // no const here
+      const StoresScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -36,31 +44,19 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Planner',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: 'Lists',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: 'Stores',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.event_note), label: 'Planner'),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Lists'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Scan'),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Stores'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
   }
 }
+
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
@@ -71,9 +67,7 @@ class HomeTab extends StatelessWidget {
     final userName = userProvider.userName ?? 'there';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grocery AI'),
-      ),
+      appBar: AppBar(title: const Text('AI-Nutrition')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -86,9 +80,9 @@ class HomeTab extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'What would you like to do today?',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 32),
             _QuickActionCard(
@@ -98,7 +92,9 @@ class HomeTab extends StatelessWidget {
               color: AppColors.primary,
               onTap: () {
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const PlannerScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const PlannerScreen(),
+                  ),
                 );
               },
             ),
@@ -203,16 +199,13 @@ class _QuickActionCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),

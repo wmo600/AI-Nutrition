@@ -14,38 +14,49 @@ class PlannerScreen extends StatefulWidget {
 }
 
 class _PlannerScreenState extends State<PlannerScreen> {
-  int _selectedDays = 3;
+  int _selectedDays = 7;
 
-  Future<void> _generateMealPlan() async {
+  Future<void> _generatePlan(BuildContext context) async {
     final userProvider = context.read<UserProvider>();
     final mealPlanProvider = context.read<MealPlanProvider>();
     final groceryProvider = context.read<GroceryProvider>();
 
     final prefs = userProvider.preferences;
-    if (prefs == null) return;
+    if (prefs == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please set your goals first.')),
+      );
+      return;
+    }
+
+    // TEMP userId strategy:
+    // - if you later store a real userId in UserProvider, use that instead
+    final String userId = userProvider.userName ?? 'test123';
 
     try {
       final result = await mealPlanProvider.generateMealPlan(
+        userId: userId,
         dietaryPreferences: prefs.dietaryPreferences,
         days: _selectedDays,
         budget: prefs.weeklyBudget,
       );
 
-      // Generate grocery list from meal plan
-      final List<GroceryItem> groceryList = [];
-      for (var item in result['groceryList']) {
-        groceryList.add(GroceryItem.fromJson(item));
-      }
+      // Build grocery list from AI response
+      final List<dynamic> listJson = result['groceryList'] ?? [];
+      final List<GroceryItem> groceryList = listJson
+          .map((item) => GroceryItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+
       groceryProvider.setGroceryList(groceryList);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Meal plan generated!')),
+        const SnackBar(content: Text('Meal plan generated successfully!')),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Failed to generate meal plan: $e')),
       );
     }
   }
@@ -59,217 +70,134 @@ class _PlannerScreenState extends State<PlannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meal Planner'),
-        actions: [
-          if (mealPlans.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _generateMealPlan,
-            ),
-        ],
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.primary.withOpacity(0.1),
-            child: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Days selector
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Plan for $_selectedDays days',
+                  'Plan length (days)',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () => setState(() => _selectedDays = 3),
-                      style: TextButton.styleFrom(
-                        backgroundColor: _selectedDays == 3
-                            ? AppColors.primary
-                            : Colors.transparent,
-                        foregroundColor: _selectedDays == 3
-                            ? Colors.white
-                            : AppColors.primary,
-                      ),
-                      child: const Text('3 Days'),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () => setState(() => _selectedDays = 5),
-                      style: TextButton.styleFrom(
-                        backgroundColor: _selectedDays == 5
-                            ? AppColors.primary
-                            : Colors.transparent,
-                        foregroundColor: _selectedDays == 5
-                            ? Colors.white
-                            : AppColors.primary,
-                      ),
-                      child: const Text('5 Days'),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: () => setState(() => _selectedDays = 7),
-                      style: TextButton.styleFrom(
-                        backgroundColor: _selectedDays == 7
-                            ? AppColors.primary
-                            : Colors.transparent,
-                        foregroundColor: _selectedDays == 7
-                            ? Colors.white
-                            : AppColors.primary,
-                      ),
-                      child: const Text('7 Days'),
-                    ),
-                  ],
+                DropdownButton<int>(
+                  value: _selectedDays,
+                  items: const [3, 5, 7, 10, 14]
+                      .map(
+                        (d) => DropdownMenuItem(
+                          value: d,
+                          child: Text('$d days'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() => _selectedDays = value);
+                  },
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('AI is creating your meal plan...'),
-                      ],
-                    ),
-                  )
-                : mealPlans.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.restaurant_menu,
-                              size: 64,
-                              color: AppColors.textHint,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No meal plan yet',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Generate your first AI-powered meal plan',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: _generateMealPlan,
-                              icon: const Icon(Icons.auto_awesome),
-                              label: const Text('Generate Meal Plan'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: mealPlans.length,
-                        itemBuilder: (context, index) {
-                          final plan = mealPlans[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            child: ExpansionTile(
-                              title: Text(
-                                'Day ${plan.day}',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
+            const SizedBox(height: 16),
+
+            // Generate button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isLoading ? null : () => _generatePlan(context),
+                icon: const Icon(Icons.auto_awesome),
+                label: Text(isLoading ? 'Generating...' : 'Generate Meal Plan'),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Error message
+            if (mealPlanProvider.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  mealPlanProvider.errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+
+            // Meal plan list
+            Expanded(
+              child: mealPlans.isEmpty
+                  ? Center(
+                      child: Text(
+                        isLoading
+                            ? 'Generating meal plan...'
+                            : 'No meal plan yet. Generate one to get started!',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.textSecondary),
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: mealPlans.length,
+                      itemBuilder: (context, index) {
+                        final plan = mealPlans[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _MealRow(
-                                        icon: Icons.wb_sunny,
-                                        label: 'Breakfast',
-                                        meal: plan.breakfast,
-                                      ),
-                                      const Divider(height: 24),
-                                      _MealRow(
-                                        icon: Icons.lunch_dining,
-                                        label: 'Lunch',
-                                        meal: plan.lunch,
-                                      ),
-                                      const Divider(height: 24),
-                                      _MealRow(
-                                        icon: Icons.dinner_dining,
-                                        label: 'Dinner',
-                                        meal: plan.dinner,
-                                      ),
-                                      if (plan.snacks != null) ...[
-                                        const Divider(height: 24),
-                                        _MealRow(
-                                          icon: Icons.cookie,
-                                          label: 'Snacks',
-                                          meal: plan.snacks!,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                                Text(
+                                  'Day ${plan.day}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
+                                const SizedBox(height: 8),
+                                _buildMealRow('Breakfast', plan.breakfast),
+                                _buildMealRow('Lunch', plan.lunch),
+                                _buildMealRow('Dinner', plan.dinner),
+                                if (plan.snacks != null &&
+                                    plan.snacks!.trim().isNotEmpty)
+                                  _buildMealRow('Snacks', plan.snacks!),
                               ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealRow(String label, String meal) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              meal,
+              style: const TextStyle(height: 1.3),
+            ),
           ),
         ],
       ),
-      floatingActionButton: mealPlans.isNotEmpty
-          ? FloatingActionButton.extended(
-              onPressed: _generateMealPlan,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Regenerate'),
-            )
-          : null,
-    );
-  }
-}
-
-class _MealRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String meal;
-
-  const _MealRow({
-    required this.icon,
-    required this.label,
-    required this.meal,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppColors.primary, size: 24),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                meal,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

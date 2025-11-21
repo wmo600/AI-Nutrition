@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Grocery AI',
+              'AI-Nutrition',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
                     color: Colors.white,
                   ),
