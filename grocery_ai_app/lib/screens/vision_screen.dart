@@ -4,9 +4,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../theme/app_colors.dart';
 import '../services/vision_service.dart';
+
+bool _isMobileDevice() {
+  if (kIsWeb) return false;
+  return Platform.isAndroid || Platform.isIOS;
+}
 
 class VisionScreen extends StatefulWidget {
   final String userId;
@@ -26,8 +31,12 @@ class _VisionScreenState extends State<VisionScreen> {
   int? _visionLogId;
 
   Future<void> _captureAndAnalyze() async {
+    // Desktop platforms don't support camera, use gallery instead
+    final ImageSource source =
+        _isMobileDevice() ? ImageSource.camera : ImageSource.gallery;
+
     final XFile? image = await _picker.pickImage(
-      source: ImageSource.camera,
+      source: source,
       maxWidth: 1024,
       maxHeight: 1024,
       imageQuality: 85,
@@ -53,22 +62,19 @@ class _VisionScreenState extends State<VisionScreen> {
       final rawItems =
           (result['detectedItems'] as List<dynamic>? ?? []).toList();
 
-      final items = rawItems
-          .map<Map<String, dynamic>>((e) {
-            final map = Map<String, dynamic>.from(e as Map);
-            // default all to selected = true
-            return {
-              ...map,
-              'selected': true,
-            };
-          })
-          .toList();
+      final items = rawItems.map<Map<String, dynamic>>((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        // default all to selected = true
+        return {
+          ...map,
+          'selected': true,
+        };
+      }).toList();
 
       setState(() {
         _detectedItems = items;
-        _visionLogId = result['visionLogId'] is int
-            ? result['visionLogId'] as int
-            : null;
+        _visionLogId =
+            result['visionLogId'] is int ? result['visionLogId'] as int : null;
         _isAnalyzing = false;
       });
 
@@ -124,8 +130,9 @@ class _VisionScreenState extends State<VisionScreen> {
                         final item = _detectedItems[index];
                         final selected = item['selected'] as bool? ?? true;
 
-                        final name =
-                            item['item']?.toString() ?? item['food']?.toString() ?? 'Unknown';
+                        final name = item['item']?.toString() ??
+                            item['food']?.toString() ??
+                            'Unknown';
                         final qty = item['quantity']?.toString() ?? '';
                         final unit = item['unit']?.toString() ?? '';
                         final confidence = item['confidence'] as num?;
@@ -169,9 +176,8 @@ class _VisionScreenState extends State<VisionScreen> {
   }
 
   Future<void> _addSelectedToInventory() async {
-    final selectedItems = _detectedItems
-        .where((e) => (e['selected'] as bool? ?? false))
-        .toList();
+    final selectedItems =
+        _detectedItems.where((e) => (e['selected'] as bool? ?? false)).toList();
 
     if (selectedItems.isEmpty) {
       _showError('No items selected.');
