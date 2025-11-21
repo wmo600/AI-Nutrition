@@ -13,6 +13,7 @@ class MealPlanProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   Future<Map<String, dynamic>> generateMealPlan({
+    required String userId,
     required List<String> dietaryPreferences,
     required int days,
     required double budget,
@@ -22,23 +23,23 @@ class MealPlanProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _aiService.generateMealPlan(
+      final data = await _aiService.generateMealPlan(
+        userId: userId,
         dietaryPreferences: dietaryPreferences,
         days: days,
         budget: budget,
       );
 
-      final List<MealPlan> plans = [];
-      for (var mealData in result['meals']) {
-        plans.add(MealPlan.fromJson(mealData));
-      }
-      _mealPlans = plans;
-      
+      final List<dynamic> mealsJson = data['meals'] ?? [];
+      _mealPlans = mealsJson
+          .map((e) => MealPlan.fromJson(e as Map<String, dynamic>))
+          .toList();
+
       notifyListeners();
-      return result;
+      return data;
     } catch (e) {
-      _errorMessage = 'Failed to generate meal plan: $e';
-      debugPrint(_errorMessage);
+      _errorMessage = e.toString();
+      debugPrint('Error in MealPlanProvider.generateMealPlan: $e');
       notifyListeners();
       rethrow;
     } finally {

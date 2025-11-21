@@ -1,32 +1,50 @@
 import 'package:flutter/foundation.dart';
 import '../models/user_preferences.dart';
 import '../services/storage_service.dart';
+import '../services/auth_service.dart';
+import '../services/auth_storage.dart';
 
 class UserProvider with ChangeNotifier {
   final StorageService _storageService = StorageService();
+  final AuthService _authService = AuthService();
+
   UserPreferences? _preferences;
   String? _userName;
+  String? _userId;
   bool _isLoggedIn = false;
 
   UserPreferences? get preferences => _preferences;
   String? get userName => _userName;
+  String? get userId => _userId;
   bool get isLoggedIn => _isLoggedIn;
 
+  /// Called from SplashScreen
   Future<void> loadUserData() async {
-    _isLoggedIn = await _storageService.isLoggedIn();
+    // Load session from secure storage
+    _userId = await AuthStorage.getUserId();
+    _isLoggedIn = _userId != null && _userId!.isNotEmpty;
+
+    // Load display name and preferences from SharedPreferences
     _userName = await _storageService.getUserName();
-    
-    final prefsData = await _storageService.getUserPreferences();
-    if (prefsData != null) {
-      _preferences = UserPreferences.fromJson(prefsData);
+    final prefsJson = await _storageService.getUserPreferences();
+    if (prefsJson != null) {
+      _preferences = UserPreferences.fromJson(prefsJson);
     }
+
     notifyListeners();
   }
 
+  /// Login by name → backend creates/returns user + tokens
   Future<void> login(String name) async {
-    await _storageService.setLoggedIn(true, userName: name);
-    _userName = name;
+    final session = await _authService.loginWithName(name);
+
+    _userId = session['userId'];
+    _userName = session['userName'];
     _isLoggedIn = true;
+
+    // Persist login flag + display name in SharedPreferences
+    await _storageService.setLoggedIn(true, userName: _userName ?? '');
+
     notifyListeners();
   }
 
@@ -37,7 +55,10 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await _authService.logout();
     await _storageService.clearAll();
+
+    _userId = null;
     _userName = null;
     _isLoggedIn = false;
     _preferences = null;
