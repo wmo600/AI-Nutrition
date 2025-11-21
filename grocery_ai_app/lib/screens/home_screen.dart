@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_ai_app/screens/vision_screen.dart';
+import 'vision_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../theme/app_colors.dart';

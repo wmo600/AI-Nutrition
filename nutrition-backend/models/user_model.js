@@ -18,14 +18,24 @@ exports.findUserByUserName = async (userName) => {
   return result.rows[0] || null;
 };
 
-exports.createUser = async (userName) => {
-  const userId = 'usr_' + crypto.randomBytes(6).toString('hex'); // e.g. usr_a1b2c3d4e5f6
+exports.findUserByEmail = async (email) => {
+  const result = await db.query(
+    'SELECT * FROM users WHERE email = $1 LIMIT 1',
+    [email]
+  );
+  return result.rows[0] || null;
+};
+
+exports.createUser = async (userName, email = null, passwordHash = null) => {
+  const userId = 'usr_' + crypto.randomBytes(6).toString('hex');
+  
+  const authProvider = email ? 'local' : 'name';
 
   const result = await db.query(
-    `INSERT INTO users (user_id, user_name, is_active)
-     VALUES ($1, $2, TRUE)
+    `INSERT INTO users (user_id, user_name, email, password_hash, auth_provider, is_active)
+     VALUES ($1, $2, $3, $4, $5, TRUE)
      RETURNING *`,
-    [userId, userName]
+    [userId, userName, email, passwordHash, authProvider]
   );
 
   return result.rows[0];

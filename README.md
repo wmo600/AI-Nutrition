@@ -1,360 +1,584 @@
-# Grocery Planner App 🛒
+# 🥗 AI-Nutrition
 
-A smart grocery planning application built with React Native (Expo) and AWS serverless backend.
+AI-powered nutrition tracking and meal planning app with smart grocery lists and meal recommendations.
 
-## Features
+[![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter)](https://flutter.dev)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js)](https://nodejs.org)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-- 🎯 Goal-based grocery planning (Health Maintenance, Budget-Friendly, etc.)
-- 📍 Find nearby stores using geocoding
-- 📝 Create and manage shopping lists
-- 🗓️ Meal planning
-- ⭐ AI recommendations (future feature)
-- 💰 Weekly deals tracking
+---
 
-## Architecture
+## 📱 Download App
 
-### Frontend
-- **Framework**: React Native with Expo Router
-- **State Management**: Zustand
-- **Navigation**: Expo Router (file-based routing)
+**Latest Release**: [v1.0.0](https://github.com/YOUR_USERNAME/AI-Nutrition/releases/latest)
 
-### Backend (AWS)
-- **API Gateway**: HTTP API with CORS support
-- **Lambda**: Node.js 20.x function handling API requests
-- **Amazon Location Service**: For geocoding and place search
-- **Cognito**: User authentication (ready for protected routes)
-- **S3**: File uploads storage
+[📥 Download APK](https://github.com/YOUR_USERNAME/AI-Nutrition/releases/download/v1.0.0/app-release.apk)
 
-## Project Structure
+---
 
+## ✨ Features
+
+- 🔐 **User Authentication** - Secure email/password registration and login
+- 🤖 **AI Meal Planning** - Generate personalized weekly meal plans based on dietary preferences and budget
+- 📊 **Nutrition Dashboard** - Track daily macros (calories, protein, carbs, fat)
+- 📸 **Vision Scanning** - AI-powered fridge/pantry scanning to detect food items
+- 🛒 **Smart Grocery Lists** - Auto-generated shopping lists from meal plans
+- 🏪 **Store Comparison** - Find best deals at nearby stores (WIP)
+- 📈 **Food Logging** - Comprehensive meal tracking with 2,200+ food items database (WIP)
+- 🍽️ **Recipe Suggestions** - Get recipe ideas based on available ingredients
+
+---
+
+## 🚀 Quick Start
+
+### For End Users (Testers)
+
+1. **Download APK**
 ```
-.
-├── app/                          # Expo app directory (React Native)
-│   ├── (tabs)/                   # Bottom tab navigation
-│   │   ├── index.tsx            # Home dashboard
-│   │   ├── planner.tsx          # Meal planner
-│   │   ├── stores.tsx           # Nearby stores
-│   │   └── lists.tsx            # Shopping lists
-│   ├── login.tsx                # Login screen
-│   ├── splash.tsx               # Splash screen
-│   └── _layout.tsx              # Root layout
-├── src/
-│   ├── api.ts                   # API client
-│   ├── store.ts                 # Zustand store
-│   └── styles/                  # Styling
-├── services/
-│   └── api/
-│       ├── src/
-│       │   └── handler.ts       # Lambda function handler
-│       ├── package.json
-│       └── tsconfig.json
-└── infra/
-    └── cdk/
-        └── lib/
-            └── cdk-stack.ts     # AWS CDK infrastructure
-
+   Download from: https://github.com/YOUR_USERNAME/AI-Nutrition/releases/latest
 ```
 
-## API Endpoints
+2. **Install on Android Device**
+   - Open the APK file
+   - Allow installation from unknown sources if prompted
+   - Install and launch
 
-### GET /ping
-Health check endpoint
-```bash
-curl https://YOUR-API-ENDPOINT/ping
+3. **Register Account**
+   - Open app
+   - Tap "Register"
+   - Enter name, email, and password
+   - Start using!
+
+### For Developers
+
+See [Development Setup](#-development-setup) below.
+
+---
+
+## 🏗️ Architecture
 ```
+┌─────────────────┐
+│  Flutter App    │  ← Mobile Client (Android/iOS)
+│  (Dart)         │
+└────────┬────────┘
+         │ REST API
+         │
+┌────────▼────────┐
+│  Node.js API    │  ← Express.js Backend
+│  (JavaScript)   │
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    │         │
+┌───▼──┐  ┌──▼────┐
+│ PostgreSQL  │  │ Anthropic │
+│ Database    │  │ Claude API│
+└─────────┘  └───────┘
+```
+
+### Tech Stack
+
+**Frontend (Flutter)**
+- Flutter 3.x
+- Provider (State Management)
+- HTTP Client
+- Image Picker
+- Secure Storage (JWT tokens)
+
+**Backend (Node.js)**
+- Express.js
+- PostgreSQL
+- Anthropic Claude API (Haiku 4.5)
+- JWT Authentication
+- Deployed on Vercel
+
+**Database**
+- PostgreSQL
+- 2,200+ food items with nutrition data
+- 10,000+ historical food logs
+- User accounts & preferences
+
+---
+
+## 📖 Documentation
+
+### API Endpoints
+
+#### Authentication
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "userName": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+```http
+POST /api/auth/login-email
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
 
 Response:
-```json
 {
-  "message": "pong",
-  "timestamp": "2025-11-17T12:00:00.000Z"
+  "userId": "usr_abc123",
+  "userName": "John Doe",
+  "email": "john@example.com",
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "eyJhbGc..."
 }
 ```
 
-### GET /geocode?q={query}
-Geocode an address or place name using Amazon Location Service
+#### Meal Planning
+```http
+POST /api/meal/generate
+Authorization: Bearer <accessToken>
+Content-Type: application/json
 
-```bash
-curl "https://YOUR-API-ENDPOINT/geocode?q=Marina%20Bay%20Sands"
-```
+{
+  "userId": "usr_abc123",
+  "dietaryPreferences": ["Vegetarian", "Gluten-Free"],
+  "days": 7,
+  "budget": 100
+}
 
 Response:
-```json
 {
-  "results": [
+  "meals": [
     {
-      "label": "Marina Bay Sands, 10 Bayfront Avenue, Singapore 018956",
-      "address": "Marina Bay Sands, 10 Bayfront Avenue, Singapore 018956",
-      "position": [103.8597, 1.2834],
-      "country": "SGP",
-      "region": "Singapore",
-      "municipality": "Singapore",
-      "postalCode": "018956"
+      "day": 1,
+      "breakfast": "Overnight oats with berries",
+      "lunch": "Quinoa bowl with roasted vegetables",
+      "dinner": "Grilled salmon with asparagus",
+      "snacks": "Greek yogurt with honey"
+    }
+  ],
+  "groceryList": [
+    {
+      "name": "Rolled Oats",
+      "quantity": "500g",
+      "estimatedCost": 3.99,
+      "category": "Grains"
+    }
+  ],
+  "totalCost": 89.50
+}
+```
+
+#### Dashboard
+```http
+GET /api/dashboard/:userId
+Authorization: Bearer <accessToken>
+
+Response:
+{
+  "date": "2025-01-15",
+  "macros": {
+    "total_calories": 1850,
+    "total_protein": 92,
+    "total_carbs": 210,
+    "total_fat": 65,
+    "meals_logged": 3
+  },
+  "meals": [...],
+  "weekly": [...]
+}
+```
+
+#### Vision Scanning
+```http
+POST /api/vision/analyze
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "userId": "usr_abc123",
+  "imageBase64": "data:image/jpeg;base64,/9j/4AAQ...",
+  "imageType": "image/jpeg"
+}
+
+Response:
+{
+  "visionLogId": 42,
+  "detectedItems": [
+    {
+      "item": "Eggs",
+      "quantity": 12,
+      "unit": "units",
+      "confidence": 0.95
     }
   ]
 }
 ```
 
-## Prerequisites
+**Full API Documentation**
 
-### For Frontend Development
-- Node.js 18+ 
-- npm or yarn
-- Expo CLI: `npm install -g expo-cli`
-- iOS Simulator (Mac) or Android Studio
+---
 
-### For Backend Deployment
-- AWS Account
-- AWS CLI configured with credentials
-- AWS CDK CLI: `npm install -g aws-cdk`
-- Docker (for CDK bundling)
+## 💻 Development Setup
 
-## Setup Instructions
+### Prerequisites
 
-### 1. Frontend Setup
+- **Flutter SDK** 3.0 or higher
+- **Node.js** 18 or higher
+- **PostgreSQL** 13 or higher
+- **Git**
+- **Android Studio** (for Android development)
+- **Xcode** (for iOS development, macOS only)
 
+### 1. Clone Repository
 ```bash
+git clone https://github.com/wmo600/AI-Nutrition.git
+cd AI-Nutrition
+```
+
+### 2. Backend Setup
+```bash
+cd nutrition-backend
+
 # Install dependencies
-cd app
 npm install
 
-# Start development server
-npx expo start
+# Create environment file
+cp .env.example .env
 
-# Run on iOS simulator
-npx expo start --ios
-
-# Run on Android emulator
-npx expo start --android
+# Edit .env with your credentials
+nano .env
 ```
 
-### 2. Backend Deployment
+**Required Environment Variables:**
+```env
+# Database
+DATABASE_URL=postgresql://user:password@host:5432/database
 
-#### First-time setup:
+# Anthropic AI
+ANTHROPIC_API_KEY=sk-ant-your-api-key-here
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
 
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key
+REFRESH_SECRET=your-super-secret-refresh-key
+ACCESS_TOKEN_TTL=15m
+REFRESH_TOKEN_TTL=7d
+
+# Server
+NODE_ENV=development
+PORT=3000
+```
+
+**Setup Database:**
 ```bash
-# Install CDK dependencies
-cd infra/cdk
-npm install
 
-# Install Lambda dependencies
-cd ../../services/api
-npm install
+# Import food database (2,200+ items)
+node scripts/import_food_database.js
 
-# Bootstrap CDK (only needed once per AWS account/region)
-cd ../../infra/cdk
-cdk bootstrap
-
-# Deploy the stack
-cdk deploy
+# Import sample food logs
+node scripts/import_food_logs.js
 ```
 
-After deployment, CDK will output:
-- `ApiEndpoint`: Your API Gateway URL
-- `UserPoolId`: Cognito User Pool ID
-- `UserPoolClientId`: Cognito Client ID
-- `PlaceIndexName`: Amazon Location Service place index name
-
-#### Update the frontend with your API endpoint:
-
-```typescript
-// src/api.ts
-export const API = "https://YOUR-API-ENDPOINT.execute-api.REGION.amazonaws.com";
-```
-
-### 3. Testing the API
-
+**Start Backend:**
 ```bash
-# Test ping endpoint
-curl https://YOUR-API-ENDPOINT/ping
+# Development mode (with auto-reload)
+npm run dev
 
-# Test geocode endpoint
-curl "https://YOUR-API-ENDPOINT/geocode?q=Orchard%20Road%20Singapore"
+# Production mode
+npm start
 ```
 
-## Development Workflow
+Backend will run at `http://localhost:3000`
 
-### Making Changes to the Lambda Function
-
+### 3. Flutter App Setup
 ```bash
-# 1. Edit the handler
-vim services/api/src/handler.ts
+cd ../grocery_ai_app  # or your Flutter folder name
 
-# 2. Deploy changes
-cd infra/cdk
-cdk deploy
+# Install dependencies
+flutter pub get
+
+# Create environment file
+cp .env.example .env
+
+# Edit .env
+nano .env
 ```
 
-### Adding New API Routes
+**.env for Flutter:**
+```env
+BACKEND_URL=http://localhost:3000
+# OR for production
+# BACKEND_URL=https://ai-nutrition-two.vercel.app
 
-1. Add route in `infra/cdk/lib/cdk-stack.ts`:
-```typescript
-httpApi.addRoutes({
-  path: "/your-new-route",
-  methods: [apigwv2.HttpMethod.GET],
-  integration: lambdaIntegration,
-});
+APP_NAME=AI-Nutrition
 ```
 
-2. Handle the route in `services/api/src/handler.ts`:
-```typescript
-if (path === "/your-new-route" && method === "GET") {
-  // Your logic here
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data: "your response" }),
-  };
-}
-```
-
-3. Deploy:
+**Run Flutter App:**
 ```bash
-cd infra/cdk
-cdk deploy
+# Check connected devices
+flutter devices
+
+# Run on connected device/emulator
+flutter run
+
+# Run in debug mode
+flutter run --debug
+
+# Run in release mode (faster)
+flutter run --release
 ```
 
-### Adding Protected Routes (with Cognito)
-
-1. In `cdk-stack.ts`, add `authorizer` to your route:
-```typescript
-httpApi.addRoutes({
-  path: "/protected",
-  methods: [apigwv2.HttpMethod.GET],
-  integration: lambdaIntegration,
-  authorizer: authorizer,  // Add this line
-});
-```
-
-2. In your frontend, include the JWT token:
-```typescript
-const token = await getAuthToken(); // Get from Cognito
-const response = await fetch(`${API}/protected`, {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
-```
-
-## Environment Variables
-
-### Lambda Environment Variables
-Set in `cdk-stack.ts`:
-- `PLACE_INDEX_NAME`: Amazon Location Service place index name
-- `NODE_OPTIONS`: Node.js options for source maps
-
-### Frontend Environment Variables
-Create `.env` file in the app directory:
-```
-EXPO_PUBLIC_API_URL=https://your-api-endpoint
-EXPO_PUBLIC_USER_POOL_ID=your-user-pool-id
-EXPO_PUBLIC_USER_POOL_CLIENT_ID=your-client-id
-```
-
-## AWS Services Used
-
-### Amazon Location Service
-- **Service**: Place index for geocoding
-- **Data Provider**: HERE Technologies
-- **Pricing**: Pay-per-request
-- **Use Case**: Converting addresses/place names to coordinates
-
-### API Gateway HTTP API
-- **Type**: HTTP API (cheaper than REST API)
-- **CORS**: Enabled for all origins (configure for production)
-- **Integration**: Lambda proxy integration
-
-### Lambda
-- **Runtime**: Node.js 20.x
-- **Bundler**: esbuild (via AWS CDK)
-- **Memory**: 256 MB
-- **Timeout**: 10 seconds
-
-### Cognito
-- **Features**: User authentication, email sign-up
-- **Status**: Configured but not yet used in frontend
-
-## Cost Estimation
-
-For a prototype/hackathon with moderate usage:
-- API Gateway: ~$1/month (1M requests free tier)
-- Lambda: ~$0.20/month (1M requests free tier)
-- Amazon Location: ~$5/month (50k searches)
-- Cognito: Free tier (50k MAU)
-- S3: ~$0.50/month
-
-**Total: ~$7/month** (after free tier expires)
-
-## Troubleshooting
-
-### CDK Deployment Issues
-
+### 4. Build APK
 ```bash
-# Check CDK version
-cdk --version
+# Debug APK (larger, includes debugging symbols)
+flutter build apk --debug
 
-# See what will be deployed
-cdk diff
+# Release APK (optimized, smaller)
+flutter build apk --release
 
-# Force re-deploy
-cdk deploy --force
+# Split per ABI (smaller downloads)
+flutter build apk --split-per-abi --release
 ```
 
-### Lambda Errors
+APK location: `build/app/outputs/flutter-apk/`
 
+---
+
+## 🗂️ Project Structure
+```
+AI-Nutrition/
+├── nutrition-backend/              # Node.js Backend
+│   ├── controllers/               # Request handlers
+│   │   ├── auth_controller.js
+│   │   ├── meal_plan_controller.js
+│   │   ├── dashboard_controller.js
+│   │   ├── vision_controller.js
+│   │   └── ...
+│   ├── models/                    # Database models
+│   │   ├── user_model.js
+│   │   ├── food_model.js
+│   │   └── ...
+│   ├── routes/                    # API routes
+│   │   ├── auth_route.js
+│   │   ├── meal_route.js
+│   │   └── ...
+│   ├── services/                  # Business logic
+│   │   ├── auth_service.js
+│   │   ├── ai_service.js
+│   │   ├── meal_plan_service.js
+│   │   └── ...
+│   ├── middleware/                # Express middleware
+│   │   └── auth_middleware.js
+│   ├── scripts/                   # Database scripts
+│   │   ├── import_food_database.js
+│   │   └── import_food_logs.js
+│   ├── app.js                     # Express app
+│   ├── server.js                  # Entry point
+│   ├── package.json
+│   └── vercel.json               # Vercel config
+│
+├── grocery_ai_app/                # Flutter App
+│   ├── lib/
+│   │   ├── main.dart             # App entry point
+│   │   ├── models/               # Data models
+│   │   │   ├── user_preferences.dart
+│   │   │   ├── meal_plan.dart
+│   │   │   └── grocery_item.dart
+│   │   ├── providers/            # State management
+│   │   │   ├── user_provider.dart
+│   │   │   ├── meal_plan_provider.dart
+│   │   │   └── grocery_provider.dart
+│   │   ├── screens/              # UI screens
+│   │   │   ├── splash_screen.dart
+│   │   │   ├── login_screen.dart
+│   │   │   ├── home_screen.dart
+│   │   │   ├── planner_screen.dart
+│   │   │   ├── dashboard_screen.dart
+│   │   │   ├── vision_screen.dart
+│   │   │   └── ...
+│   │   ├── services/             # API services
+│   │   │   ├── auth_service.dart
+│   │   │   ├── ai_service.dart
+│   │   │   ├── api_handler.dart
+│   │   │   └── ...
+│   │   ├── theme/                # App theme
+│   │   │   ├── app_theme.dart
+│   │   │   └── app_colors.dart
+│   │   └── config/               # Configuration
+│   │       └── env_config.dart
+│   ├── android/                  # Android config
+│   ├── ios/                      # iOS config
+│   ├── pubspec.yaml             # Flutter dependencies
+│   └── .env                     # Environment variables
+│
+├── Dataset.xlsx                  # Food database import file
+├── README.md                     # This file
+├── .gitignore
+└── LICENSE
+```
+
+---
+
+## 🧪 Testing
+
+### Manual Testing Checklist
+
+**Authentication**
+- [ ] Register new account with email/password
+- [ ] Login with email/password
+- [ ] Session persists after app restart
+- [ ] Logout clears session
+
+**Meal Planning**
+- [ ] Generate 3-day meal plan
+- [ ] Generate 7-day meal plan with dietary preferences
+- [ ] Verify grocery list is generated
+- [ ] Check budget constraint is respected
+
+**Dashboard**
+- [ ] View today's macros
+- [ ] View meal logs for today
+- [ ] View weekly summary chart
+- [ ] Refresh data updates correctly
+
+**Vision Scanning**
+- [ ] Take photo of food items
+- [ ] AI correctly detects items
+- [ ] Can select/deselect detected items
+- [ ] Add selected items to inventory
+
+**Navigation**
+- [ ] All bottom navigation tabs work
+- [ ] Back button navigation works
+- [ ] App doesn't crash on navigation
+
+### Test Credentials
+
+For testing purposes:
+- **Email**: `test@example.com`
+- **Password**: `test123`
+
+Or register your own account!
+
+### Running Tests
 ```bash
-# View Lambda logs
-aws logs tail /aws/lambda/YOUR-FUNCTION-NAME --follow
+# Backend unit tests
+cd nutrition-backend
+npm test
 
-# Or use CDK output
-aws logs tail /aws/lambda/CdkStack-ApiHandler --follow
+# Flutter widget tests
+cd grocery_ai_app
+flutter test
+
+# Flutter integration tests
+flutter test integration_test
 ```
 
-### CORS Issues
+---
 
-If you get CORS errors, verify in `cdk-stack.ts`:
-```typescript
-corsPreflight: {
-  allowHeaders: ["authorization", "content-type"],
-  allowMethods: [
-    apigwv2.CorsHttpMethod.GET,
-    apigwv2.CorsHttpMethod.POST,
-    apigwv2.CorsHttpMethod.OPTIONS,
-  ],
-  allowOrigins: ["*"], // Change to specific origins in production
-}
+## 🚢 Deployment
+
+### Backend (Vercel)
+
+1. **Install Vercel CLI**
+```bash
+   npm install -g vercel
 ```
 
-## Next Steps for Hackathon
+2. **Deploy**
+```bash
+   cd nutrition-backend
+   vercel --prod
+```
 
-1. **Integrate Geocoding in Frontend**
-   - Add location search to the stores page
-   - Show real-time store locations on map
+3. **Set Environment Variables**
+   - Go to Vercel Dashboard
+   - Project Settings → Environment Variables
+   - Add all variables from `.env`
 
-2. **Add More Endpoints**
-   - `/stores/nearby` - Find stores near a location
-   - `/deals` - Fetch current deals
-   - `/recipes` - Recipe recommendations
+### Flutter App
 
-3. **AI Integration**
-   - Use Claude API for meal planning suggestions
-   - Generate shopping lists from recipes
+**Android Release:**
+```bash
+flutter build apk --release
+```
 
-4. **User Authentication**
-   - Implement Cognito sign-up/login in frontend
-   - Protect user-specific endpoints
+**iOS Release:**
+```bash
+flutter build ios --release
+```
 
-5. **Database Integration**
-   - Add DynamoDB for user data, lists, and preferences
-   - Store user shopping history
+---
 
-## Resources
+## 🐛 Troubleshooting
 
-- [Expo Documentation](https://docs.expo.dev/)
-- [AWS CDK Documentation](https://docs.aws.amazon.com/cdk/)
-- [Amazon Location Service](https://docs.aws.amazon.com/location/)
-- [API Gateway HTTP APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html)
+### Backend Issues
 
-## License
+**Database connection fails**
+```bash
+# Check DATABASE_URL is correct
+echo $DATABASE_URL
 
-MIT
+# Test connection
+psql $DATABASE_URL -c "SELECT 1"
+```
+
+**API returns 401 Unauthorized**
+- Check JWT_SECRET is set in environment variables
+- Verify access token hasn't expired (15 min default)
+- Use refresh token to get new access token
+
+### Flutter Issues
+
+**Build fails**
+```bash
+flutter clean
+flutter pub get
+flutter build apk --release
+```
+
+**API connection fails**
+- Check BACKEND_URL in `.env`
+- Ensure backend is running
+- Check network permissions in `AndroidManifest.xml`
+
+**App crashes on startup**
+- Check all dependencies are installed: `flutter pub get`
+- Clear cache: `flutter clean`
+
+---
+
+
+## 👥 Contributors
+
+- **wmo600**  - Solo
+
+
+---
+
+
+## 🙏 Acknowledgments
+
+- [Anthropic Claude](https://www.anthropic.com/) - AI meal planning and vision
+- [Flutter](https://flutter.dev/) - Mobile framework
+- [Vercel](https://vercel.com/) - Backend hosting
+- Our amazing hackathon team! 🎉
+
+---
+
+## 📧 Contact
+
+For questions or support:
+- Email: woo.197588@gmail.com
+
+---
+
+## ⭐ Star This Repo!
+
+If you find this project interesting, please give it a star! It helps others discover the project.
+
+---
+
+**Made with ❤️ for [SOC X CLS]**

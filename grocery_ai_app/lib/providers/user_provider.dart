@@ -64,4 +64,44 @@ class UserProvider with ChangeNotifier {
     _preferences = null;
     notifyListeners();
   }
+
+  /// New: Register with email/password
+  Future<void> register({
+    required String userName,
+    required String email,
+    required String password,
+  }) async {
+    final session = await _authService.register(
+      userName: userName,
+      email: email,
+      password: password,
+    );
+
+    _userId = session['userId'];
+    _userName = session['userName'];
+    _isLoggedIn = true;
+
+    await _storageService.setLoggedIn(true, userName: _userName ?? '');
+
+    notifyListeners();
+  }
+
+  /// New: Login with email/password
+  Future<void> loginWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final session = await _authService.loginWithEmail(
+      email: email,
+      password: password,
+    );
+
+    _userId = session['userId'];
+    _userName = session['userName'];
+    _isLoggedIn = true;
+
+    await _storageService.setLoggedIn(true, userName: _userName ?? '');
+
+    notifyListeners();
+  }
 }
