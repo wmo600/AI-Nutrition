@@ -31,4 +31,8 @@ app.get('/', (req, res) =>
   res.json({ status: 'ok', service: 'Nutrition API', version: '2.0.0' })
 );
 
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found' });
+});
+
 module.exports = app;
