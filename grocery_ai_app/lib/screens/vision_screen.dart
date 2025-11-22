@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../theme/app_colors.dart';
 import '../services/vision_service.dart';
 
@@ -30,6 +31,38 @@ class _VisionScreenState extends State<VisionScreen> {
   List<Map<String, dynamic>> _detectedItems = [];
   int? _visionLogId;
 
+  Future<XFile?> _compressImage(XFile image) async {
+    try {
+      // Get file size before compression
+      final bytes = await image.readAsBytes();
+      final sizeInMB = bytes.length / (1024 * 1024);
+      print('Original image size: ${sizeInMB.toStringAsFixed(2)} MB');
+
+      // Compress the image
+      final result = await FlutterImageCompress.compressAndGetFile(
+        image.path,
+        '${image.path}_compressed.jpg',
+        quality: 70, // Adjust this (0-100) - lower = smaller file
+        minWidth: 800,  // Reduced from 1024
+        minHeight: 800,
+        format: CompressFormat.jpeg,
+      );
+
+      if (result != null) {
+        final compressedBytes = await result.readAsBytes();
+        final compressedSizeInMB = compressedBytes.length / (1024 * 1024);
+        print('Compressed image size: ${compressedSizeInMB.toStringAsFixed(2)} MB');
+        
+        return result;
+      }
+
+      return image; // Return original if compression fails
+    } catch (e) {
+      print('Compression error: $e');
+      return image; // Return original if error
+    }
+  }
+
   Future<void> _captureAndAnalyze() async {
     // Desktop platforms don't support camera, use gallery instead
     final ImageSource source =
@@ -51,8 +84,23 @@ class _VisionScreenState extends State<VisionScreen> {
     });
 
     try {
-      final bytes = await File(image.path).readAsBytes();
+      // Compress the image before sending
+      final compressedImage = await _compressImage(image);
+      
+      if (compressedImage == null) {
+        throw Exception('Failed to compress image');
+      }
+
+      final bytes = await File(compressedImage.path).readAsBytes();
       final base64Image = base64Encode(bytes);
+
+      // Check final base64 size
+      final base64SizeInMB = base64Image.length / (1024 * 1024);
+      print('Base64 size: ${base64SizeInMB.toStringAsFixed(2)} MB');
+
+      if (base64SizeInMB > 3) {
+        throw Exception('Image too large after compression (${base64SizeInMB.toStringAsFixed(2)} MB). Please try a different image.');
+      }
 
       final result = await _visionService.analyzeImage(
         userId: widget.userId,
