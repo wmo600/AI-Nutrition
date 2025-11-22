@@ -10,9 +10,9 @@ AI-powered nutrition tracking and meal planning app with smart grocery lists and
 
 ## 📱 Download App
 
-**Latest Release**: [v1.0.0](https://github.com/wmo600/AI-Nutrition/releases/latest)
+**Latest Release**: [v1.0.2](https://github.com/wmo600/AI-Nutrition/releases/latest)
 
-[📥 Download APK](https://github.com/wmo600/AI-Nutrition/releases/tag/v1.0.0)
+[📥 Download APK](https://github.com/wmo600/AI-Nutrition/releases/latest)
 
 ---
 
